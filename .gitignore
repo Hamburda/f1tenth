@@ -1,0 +1,15 @@
+# colcon build output
+build/
+install/
+log/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# simulatorul e repo separat, se clonează la setup (vezi README)
+src/f1tenth_gym_ros/
+
+# note locale pentru Claude Code
+CLAUDE.md
