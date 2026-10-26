@@ -8,7 +8,11 @@ from launch_ros.actions import Node
 EXECUTABLE = 'pure_pursuit_node'
 
 # valorile pentru parametrii pe care îi declară nodul, pentru harta asta
-PARAMETERS = {}
+PARAMETERS = {
+    'csv_name': 'levine_centerline.csv',
+    'lookahead': 1.5,
+    'speed': 4.0,
+}
 
 
 def generate_launch_description():
