@@ -8,10 +8,15 @@ from launch_ros.actions import Node
 EXECUTABLE = 'pure_pursuit_node'
 
 # valorile pentru parametrii pe care îi declară nodul, pentru harta asta
+# viteză constantă 2 m/s (vmin = vmax) și lookahead fix 1.0 m (k = 0, L_min = L_max)
 PARAMETERS = {
     'csv_name': 'levine_obs_path.csv',
-    'lookahead': 1.0,
-    'speed': 2.0,
+    'vmin': 2.0,
+    'vmax': 2.0,
+    'k': 0.0,
+    'L0': 1.0,
+    'L_min': 1.0,
+    'L_max': 1.0,
 }
 
 
