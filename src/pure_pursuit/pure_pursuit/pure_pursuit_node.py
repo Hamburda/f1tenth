@@ -5,6 +5,8 @@ import numpy as np
 from rclpy.node import Node
 from ackermann_msgs.msg import AckermannDriveStamped
 from nav_msgs.msg import Odometry
+from visualization_msgs.msg import Marker
+from geometry_msgs.msg import Point
 from ament_index_python.packages import get_package_share_directory
 
 
@@ -21,8 +23,41 @@ class PurePursuit(Node):
         self.speed=self.get_parameter('speed').value
         self.create_subscription(Odometry,'/ego_racecar/odom',self.odom_callback,10)
         self.drive_pub=self.create_publisher(AckermannDriveStamped,'/drive',10)
+        # markere pentru Foxglove: traseul (republicat la 1 s) și ținta curentă
+        self.marker_pub=self.create_publisher(Marker,'/pure_pursuit/markers',10)
+        self.path_marker=self.make_path_marker()
+        self.create_timer(1.0,self.publish_path)
 
-        
+    def make_marker(self, marker_id, marker_type, r, g, b):
+        m=Marker()
+        m.header.frame_id='map'
+        m.ns='pure_pursuit'
+        m.id=marker_id
+        m.type=marker_type
+        m.action=Marker.ADD
+        m.pose.orientation.w=1.0
+        m.color.r, m.color.g, m.color.b, m.color.a = r, g, b, 1.0
+        return m
+
+    def make_path_marker(self):
+        m=self.make_marker(0,Marker.LINE_STRIP,0.0,0.6,1.0)
+        m.scale.x=0.05
+        m.points=[Point(x=float(px),y=float(py),z=0.0) for px,py in self.waypoints]
+        m.points.append(m.points[0])  # închide bucla
+        return m
+
+    def publish_path(self):
+        self.path_marker.header.stamp=self.get_clock().now().to_msg()
+        self.marker_pub.publish(self.path_marker)
+
+    def publish_goal(self, gx, gy):
+        m=self.make_marker(1,Marker.SPHERE,1.0,0.2,0.2)
+        m.header.stamp=self.get_clock().now().to_msg()
+        m.scale.x=m.scale.y=m.scale.z=0.25
+        m.pose.position.x=float(gx)
+        m.pose.position.y=float(gy)
+        self.marker_pub.publish(m)
+
     def load_waypoints(self, filename):
         folder = get_package_share_directory('pure_pursuit')
         path = os.path.join(folder, 'waypoints', filename)
@@ -40,6 +75,7 @@ class PurePursuit(Node):
         
         # 2. găsește punctul-țintă pe traseu (apelează find_goal)
         gx, gy = self.find_goal(x,y)
+        self.publish_goal(gx, gy)
         # 3. transformă punctul-țintă în coordonatele mașinii
         dx=gx-x
         dy=gy-y
